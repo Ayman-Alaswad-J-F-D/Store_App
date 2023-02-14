@@ -62,6 +62,7 @@ class _CustomCardState extends State<CustomCard> {
   @override
   void dispose() {
     // scaleController.dispose();
+
     super.dispose();
   }
 
