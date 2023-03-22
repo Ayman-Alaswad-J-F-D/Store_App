@@ -28,7 +28,7 @@ class CustomTextFormField extends StatelessWidget {
     this.fontSizeHintText,
     this.openEnabled = true,
     this.openHelberText = false,
-    this.maxLines,
+    this.maxLines = 1,
   }) : super(key: key);
 
   final TextEditingController textEditingController;
@@ -54,7 +54,7 @@ class CustomTextFormField extends StatelessWidget {
   double? fontSizeHintText;
   bool openEnabled;
   bool openHelberText;
-  int? maxLines;
+  int maxLines;
 
   @override
   Widget build(BuildContext context) {
