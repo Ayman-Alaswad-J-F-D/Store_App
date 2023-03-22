@@ -39,33 +39,35 @@ class _UserCardScreenState extends State<UserCardScreen> {
           body: ConditionalBuilder(
             condition: cubit.listCardUsersModel != null &&
                 state is UserCardSuccessState,
-            builder: (context) => AnimationLimiter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15),
-                child: SlimyCard(
-                  topCardHeight: MediaQuery.of(context).size.height * 0.35,
-                  width: MediaQuery.of(context).size.width - 20,
-                  color: kPrimaryColor,
-                  topCardWidget: ListView.separated(
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                    itemCount: cubit.listCardUsersModel?.length ?? 0,
-                    itemBuilder: (context, index) => ListViewAnimation(
-                      index: index,
-                      child: UserCardInfo(
+            builder: (context) => SingleChildScrollView(
+              child: AnimationLimiter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 15),
+                  child: SlimyCard(
+                    topCardHeight: MediaQuery.of(context).size.height * 0.35,
+                    width: MediaQuery.of(context).size.width - 20,
+                    color: kPrimaryColor,
+                    topCardWidget: ListView.separated(
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      itemCount: cubit.listCardUsersModel?.length ?? 0,
+                      itemBuilder: (context, index) => ListViewAnimation(
                         index: index,
-                        cardUsersModel: cubit.listCardUsersModel![index],
+                        child: UserCardInfo(
+                          index: index,
+                          cardUsersModel: cubit.listCardUsersModel![index],
+                        ),
+                      ),
+                      separatorBuilder: (context, index) => const Divider(
+                        height: 30,
+                        thickness: 0.2,
+                        color: kWhiteColor,
                       ),
                     ),
-                    separatorBuilder: (context, index) => const Divider(
-                      height: 30,
-                      thickness: 0.2,
-                      color: kWhiteColor,
-                    ),
+                    bottomCardHeight: MediaQuery.of(context).size.height * 0.35,
+                    bottomCardWidget: UserCardItem(cubit: cubit, state: state),
                   ),
-                  bottomCardHeight: MediaQuery.of(context).size.height * 0.35,
-                  bottomCardWidget: UserCardItem(cubit: cubit, state: state),
                 ),
               ),
             ),
