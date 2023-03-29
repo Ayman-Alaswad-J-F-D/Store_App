@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:store_app/app/cubit/app_cubit.dart';
 
 import '../../../app/constants.dart';
-import '../../../models/card_model.dart';
+// import '../../../models/card_model.dart';
 
 class UserCardInfo extends StatelessWidget {
   const UserCardInfo({
     Key? key,
     required this.index,
-    required this.cardUsersModel,
   }) : super(key: key);
 
   final int index;
-  final CardModel cardUsersModel;
 
   @override
   Widget build(BuildContext context) {
+    final cubit = AppCubit.get(context);
     return Container(
       padding: const EdgeInsets.all(8),
-      color: kPrimaryColor,
+      decoration: BoxDecoration(
+        color: kPrimaryColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Column(
         children: [
           Row(
@@ -26,15 +29,15 @@ class UserCardInfo extends StatelessWidget {
             children: const [
               Text(
                 'Product',
-                style: TextStyle(color: kYallowColor, fontSize: 18),
+                style: TextStyle(color: kYallowColor, fontSize: 16),
               ),
               Text(
-                "Quantity",
-                style: TextStyle(color: kYallowColor, fontSize: 18),
+                'Quantity',
+                style: TextStyle(color: kYallowColor, fontSize: 16),
               ),
               Text(
-                'Data Time',
-                style: TextStyle(color: kYallowColor, fontSize: 18),
+                'Addition Time',
+                style: TextStyle(color: kYallowColor, fontSize: 16),
               ),
             ],
           ),
@@ -43,19 +46,16 @@ class UserCardInfo extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                cardUsersModel.product?[index].productId.toString() ?? '0',
+                cubit.cardUser[index].id.toString(),
                 style: const TextStyle(color: kWhiteColor, fontSize: 16),
               ),
               Text(
-                cardUsersModel.product?[index].quantity
-                        .toString()
-                        .padLeft(15, ' ') ??
-                    '0',
+                cubit.cardUser[index].quantity.toString().padLeft(12, ' '),
                 style: const TextStyle(color: kWhiteColor, fontSize: 16),
               ),
               Text(
                 DateFormat.yMMMd()
-                    .format(DateTime.parse(cardUsersModel.data))
+                    .format(DateTime.parse(cubit.cardUser[index].dataTime))
                     .toString(),
                 style: const TextStyle(color: kWhiteColor, fontSize: 16),
               ),

@@ -42,3 +42,21 @@ class SuccessUserDataState extends AppStates {
 class ErrorUserDataState extends AppStates {}
 
 class ChangeFavoretisState extends AppStates {}
+
+class CreateDatabaseState extends AppStates {}
+
+class InsertDatabaseState extends AppStates {}
+
+class GetDatabaseLoadingState extends AppStates {}
+
+class GetDatabaseState extends AppStates {}
+
+class DeleteDatabaseState extends AppStates {}
+
+class UpdateDatabaseState extends AppStates {}
+
+class IsClearCardeState extends AppStates {}
+
+class IncreaseQuantityState extends AppStates {}
+
+class DecreaseQuantityState extends AppStates {}

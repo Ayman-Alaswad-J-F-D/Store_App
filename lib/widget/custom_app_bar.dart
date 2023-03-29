@@ -4,7 +4,10 @@ import 'package:flutter/services.dart';
 import '../app/constants.dart';
 
 // ignore: non_constant_identifier_names
-AppBar CustomAppBar({required String textTitle, List<Widget>? actionWidget}) =>
+AppBar CustomAppBar(
+        {required String textTitle,
+        List<Widget>? actionWidget,
+        Widget? leadingWidget}) =>
     AppBar(
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -14,6 +17,7 @@ AppBar CustomAppBar({required String textTitle, List<Widget>? actionWidget}) =>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
+      leading: leadingWidget,
       elevation: 0,
       title: Text(
         textTitle,

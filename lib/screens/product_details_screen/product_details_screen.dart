@@ -51,7 +51,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     children: [
                       ProductDescription(product: widget.product),
                       ProductDetails(product: widget.product),
-                      RowLikeAndDetailsCard(product: widget.product)
+                      RowLikeAndDetailsCard(product: widget.product),
                     ],
                   ),
                 ),
@@ -64,14 +64,3 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 }
-
-
-// Future<void> addProduct(ProductModel product) async {
-//   await AddProduct.addProduct(
-//     title: 'Ayman10',
-//     price: product.price.toString(),
-//     description: product.description,
-//     image: product.image,
-//     categories: product.category,
-//   );
-// }

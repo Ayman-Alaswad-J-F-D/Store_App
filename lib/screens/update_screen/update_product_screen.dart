@@ -125,6 +125,3 @@ SnackBar CustomSnackBar(text) => SnackBar(
       content: Text(text),
       duration: const Duration(seconds: 4),
     );
-
-
-// Mens Cotton Jacket

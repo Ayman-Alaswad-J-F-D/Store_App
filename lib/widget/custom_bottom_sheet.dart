@@ -5,6 +5,7 @@ import '../app/constants.dart';
 import '../app/cubit/app_cubit.dart';
 import '../models/product_model.dart';
 import 'custom_button.dart';
+import 'custom_circular_progress.dart';
 import 'custom_snack_bar.dart';
 
 class CustomBottomSheet extends StatefulWidget {
@@ -28,26 +29,27 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
       child: Container(
         clipBehavior: Clip.antiAliasWithSaveLayer,
         decoration: const BoxDecoration(
-          color: kSecondPrimaryColor,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          color: kSecondPrimaryColor,
         ),
         padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             IconButton(
+              icon: const Icon(FontAwesomeIcons.minus),
               color: kWhiteColor,
               onPressed: () {
                 if (appCubit.quantity > 1) {
                   setState(() => appCubit.quantity--);
                 }
               },
-              icon: const Icon(FontAwesomeIcons.minus),
             ),
             Text(
               appCubit.quantity.toString().padLeft(2, '0'),
               style: const TextStyle(color: kWhiteColor, fontSize: 18),
             ),
             IconButton(
+              icon: const Icon(FontAwesomeIcons.plus),
               color: kWhiteColor,
               onPressed: () {
                 if (appCubit.quantity < widget.product.rating!.count) {
@@ -61,12 +63,32 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                   );
                 }
               },
-              icon: const Icon(FontAwesomeIcons.plus),
             ),
             Expanded(
               child: CustomButton(
+                text: 'Add To Card',
+                backgroundColor: kWhiteColor,
+                colorText: kPrimaryColor,
                 onTap: () {
-                  appCubit.addToCard(widget.product, context).then(
+                  showDialog(
+                    barrierDismissible: false,
+                    context: context,
+                    builder: (builder) {
+                      return const CustomCircularProgress();
+                    },
+                  );
+                  Future.delayed(const Duration(milliseconds: 600), () {
+                    appCubit.insertDatabase(
+                      productId: widget.product.id,
+                      title: widget.product.title,
+                      desc: widget.product.description,
+                      image: widget.product.image,
+                      price: widget.product.price.toString(),
+                      category: widget.product.category,
+                      quantity: appCubit.quantity,
+                      dataTime: DateTime.now().toString(),
+                    );
+                  }).then(
                     (_) {
                       Navigator.pop(context);
                       return ScaffoldMessenger.of(context).showSnackBar(
@@ -86,9 +108,6 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                     );
                   });
                 },
-                text: 'Add To Card',
-                backgroundColor: kWhiteColor,
-                colorText: kPrimaryColor,
               ),
             ),
           ],

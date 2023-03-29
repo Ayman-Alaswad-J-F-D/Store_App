@@ -7,12 +7,15 @@ class FallBackWidget extends StatelessWidget {
   const FallBackWidget({
     Key? key,
     required this.text,
+    this.colorText = kSecondPrimaryColor,
     this.needBottom = true,
-    @required this.onTap,
+    this.onTap,
   }) : super(key: key);
+
   final String text;
   final Function()? onTap;
   final bool needBottom;
+  final Color? colorText;
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +25,7 @@ class FallBackWidget extends StatelessWidget {
         children: [
           Text(
             text,
-            style: const TextStyle(
-              fontSize: 16,
-              color: kSecondPrimaryColor,
-            ),
+            style: TextStyle(fontSize: 16, color: colorText),
           ),
           const SizedBox(height: 20),
           needBottom

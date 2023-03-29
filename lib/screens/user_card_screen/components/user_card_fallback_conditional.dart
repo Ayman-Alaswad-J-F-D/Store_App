@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:store_app/widget/custom_circular_progress.dart';
 
 import '../../../app/cubit/app_cubit.dart';
-import '../../../widget/custom_circular_progress.dart';
 import '../../../widget/fall_back_connection_widget.dart';
 
 class UserCardFallBackConditional extends StatelessWidget {
@@ -9,27 +9,22 @@ class UserCardFallBackConditional extends StatelessWidget {
     Key? key,
     required this.state,
     required this.cubit,
-    required this.userId,
+    // required this.userId,
   }) : super(key: key);
 
   final AppStates state;
   final AppCubit cubit;
-  final String userId;
+  // final String userId;
 
   @override
   Widget build(BuildContext context) {
-    if (state is CheckConnectionState) {
-      return FallBackWidget(
-        text: 'Please check your connection ..',
-        onTap: () => cubit.getUserCard(userId: userId),
-      );
-    } else if (state is UserCardErrorState) {
-      return FallBackWidget(
-        text: 'Somthing is wrong !',
-        onTap: () => cubit.getUserCard(userId: userId),
+    if (cubit.cardUser.isEmpty && state is IsClearCardeState) {
+      return const FallBackWidget(
+        text: 'Your Card is Empty ...',
+        needBottom: false,
       );
     } else {
-      return const CustomCircularProgress(elevation: 2);
+      return const CustomCircularProgress();
     }
   }
 }

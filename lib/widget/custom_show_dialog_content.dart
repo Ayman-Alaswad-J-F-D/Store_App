@@ -4,22 +4,21 @@ import 'package:intl/intl.dart';
 
 import '../app/constants.dart';
 import '../app/cubit/app_cubit.dart';
-import '../models/card_model.dart';
 
 // import '../screens/home_screen/cubit/home_cubit.dart';
 
 class CustomShowDialogContent extends StatelessWidget {
   const CustomShowDialogContent({
     Key? key,
-    required this.cardModel,
-    // required this.index,
+    required this.index,
   }) : super(key: key);
 
-  final CardModel cardModel;
-  // final int index;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
+    // final index AppCubit.get(context).cardUser[index].dataTime index;
+
     return Card(
       margin: EdgeInsets.symmetric(
         vertical: MediaQuery.of(context).size.height / 3,
@@ -63,11 +62,9 @@ class CustomShowDialogContent extends StatelessWidget {
                       ),
                       Text(
                         AppCubit.get(context)
-                                .cardModel
-                                ?.product?[0]
-                                .quantity
-                                .toString() ??
-                            cardModel.product![0].quantity.toString(),
+                            .cardUser[index]
+                            .quantity
+                            .toString(),
                         style: const TextStyle(
                           fontSize: 20,
                           color: kPrimaryTextColor,
@@ -86,11 +83,7 @@ class CustomShowDialogContent extends StatelessWidget {
                         DateFormat.yMMMd()
                             .format(
                               DateTime.parse(
-                                AppCubit.get(context)
-                                        .cardModel
-                                        ?.data
-                                        .toString() ??
-                                    cardModel.data.toString(),
+                                AppCubit.get(context).cardUser[index].dataTime,
                               ),
                             )
                             .toString(),

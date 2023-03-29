@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:store_app/models/card_user_model.dart';
 
 import '../../../models/card_model.dart';
 import '../../../models/user_model.dart';
-import '../../../services/add_to_card_service.dart';
 import '../../../services/all_product_service.dart';
-import '../../../widget/custom_circular_progress.dart';
 import '../../helper/local/cache_helper.dart';
 import '../../helper/remote/users_api.dart';
 import '../../models/catefories_model.dart';
@@ -30,7 +30,6 @@ class AppCubit extends Cubit<AppStates> {
   List<CardModel>? listCardUsersModel;
   List<dynamic>? listCategories;
 
-  CardModel? cardModel;
   UserModel? userModel;
 
   int quantity = 1;
@@ -44,9 +43,8 @@ class AppCubit extends Cubit<AppStates> {
     ).then((value) {
       userModel = UserModel.fromJson(value);
       // printFullText(value.data);
-      print('status is User Data');
-      print(userModel?.status);
-      print(userModel?.data!.name);
+      print('status is User Data ${userModel?.status}');
+      print(userModel?.data?.name);
 
       emit(SuccessUserDataState(userModel: userModel!));
     }).catchError((error) {
@@ -142,21 +140,34 @@ class AppCubit extends Cubit<AppStates> {
     }
   }
 
-  Future<void> addToCard(ProductModel product, context) async {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (builder) {
-        return const CustomCircularProgress();
-      },
-    );
-    cardModel = await AddToCard.addToCard(
-      userId: userModel?.data?.id.toString() ?? "5",
-      dataTime: DateTime.now().toString(),
-      productsId: product.id.toString(),
-      quantity: quantity.toString(),
-    );
-  }
+  // Future<void> addToCard(ProductModel product, context) async {
+  //   showDialog(
+  //     barrierDismissible: false,
+  //     context: context,
+  //     builder: (builder) {
+  //       return const CustomCircularProgress();
+  //     },
+  //   );
+  //   cardModel = await AddToCard.addToCard(
+  //     userId: userModel?.data?.id.toString() ?? "5",
+  //     dataTime: DateTime.now().toString(),
+  //     productsId: product.id.toString(),
+  //     quantity: quantity.toString(),
+  //   );
+  // }
+
+  // Future<void> updateProduct(ProductModel product) async {
+  //   await UpdateProductService.updateProduct(
+  //     id: product.id,
+  //     title: productName ?? product.title,
+  //     price: price ?? product.price.toString(),
+  //     description: description ?? product.description,
+  //     image: image ?? product.image,
+  //     categories: product.category,
+  // rate: product.rating.rate,
+  // count: product.rating.count,
+  //   );
+  // }
 
   Future<void> changeFavoritess(int productId) async {
     if (myFavorites.contains(productId)) {
@@ -171,6 +182,118 @@ class AppCubit extends Cubit<AppStates> {
 
       await CacheHelper.saveData(key: 'Favorites', value: myFavorites);
       emit(ChangeFavoretisState());
+    }
+  }
+
+  // ? Branch Database
+
+  Database? database;
+  List<LocalCardUsersModel> cardUser = [];
+
+  void createDatabase() {
+    // open the database
+    openDatabase('cards.db', version: 1, onCreate: (database, version) async {
+      // When creating the db, create the table
+      print('Database Created');
+      await database
+          .execute(
+            'CREATE TABLE cards (id INTEGER PRIMARY KEY, productId INTEGER, title TEXT, desc TEXT, price TEXT,category TEXT, image TEXT, quantity INTEGER, dataTime TEXT)',
+          )
+          .then((value) => print('Table Created'))
+          .catchError(
+              (error) => print('Error when created table ${error.toString()}'));
+    }, onOpen: (database) {
+      getFromDatabase(database);
+      print('Database Opened');
+    }).then((value) {
+      database = value;
+      emit(CreateDatabaseState());
+    });
+  }
+
+  insertDatabase({
+    int? productId,
+    String? title,
+    String? desc,
+    String? price,
+    String? category,
+    String? image,
+    String? dataTime,
+    int? quantity,
+  }) async {
+    await database?.transaction((txn) {
+      txn
+          .rawInsert(
+        'INSERT INTO cards(productId, title, desc, price, category, image, quantity, dataTime) VALUES("$productId","$title","$desc","$price","$category","$image","$quantity","$dataTime")',
+      )
+          .then((value) {
+        print('$value Insert Successfully');
+        emit(InsertDatabaseState());
+        getFromDatabase(database);
+      }).catchError((error) {
+        print('Error when inserting new record ${error.toString()}');
+      });
+      return Future.delayed(const Duration(microseconds: 100), () {
+        print("Done");
+      });
+    });
+  }
+
+  Future<void> updateData({required int id, required int quantity}) async {
+    database!.rawUpdate('UPDATE cards SET quantity = ? WHERE id = ?',
+        [quantity, id]).then((value) {
+      print('Update ' + value.toString());
+      getFromDatabase(database);
+      emit(UpdateDatabaseState());
+    });
+  }
+
+  Future<void> deleteData({required int id, required int index}) async {
+    database!.rawDelete('DELETE FROM cards WHERE id = ?', [id]).then((value) {
+      updateQuantity.removeAt(index);
+      getFromDatabase(database);
+      emit(DeleteDatabaseState());
+    });
+  }
+
+  void getFromDatabase(database) {
+    cardUser = [];
+
+    emit(GetDatabaseLoadingState());
+    database.rawQuery('SELECT * FROM cards').then((value) {
+      value.forEach((element) {
+        cardUser.add(LocalCardUsersModel.fromJson(element));
+        if (cardUser.isEmpty) {
+          emit(IsClearCardeState());
+        }
+      });
+      emit(GetDatabaseState());
+    });
+  }
+
+  final List<int> updateQuantity = [];
+  Color backgroundEditProduct = kSecondPrimaryColor;
+
+  increaseQuantityData({required int index}) {
+    updateQuantity[index]++;
+    // backgroundEditProduct = kIconLoveColor;
+    emit(IncreaseQuantityState());
+  }
+
+  decreaseQuantityData({required int index}) {
+    updateQuantity[index]--;
+    // backgroundEditProduct = kIconLoveColor;
+    emit(DecreaseQuantityState());
+  }
+
+  bool showDone({required int index}) {
+    if (cardUser[index].quantity > updateQuantity[index]) {
+      return true;
+    }
+    if (cardUser[index].quantity < updateQuantity[index]) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

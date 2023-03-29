@@ -8,6 +8,7 @@ import 'package:store_app/screens/login_screen/cubit/login_cubit.dart';
 import 'package:store_app/screens/login_screen/login_screen.dart';
 import 'package:store_app/screens/products_screen/products_screen.dart';
 import 'package:store_app/screens/register_screen/cubit/register_cubit.dart';
+import 'package:store_app/screens/splash_screen/splash_screen.dart';
 
 import 'app/cubit/app_cubit.dart';
 import 'bloc_observer.dart';
@@ -47,7 +48,7 @@ class StoreApp extends StatelessWidget {
             // builder: DevicePreview.appBuilder,
             debugShowCheckedModeBanner: false,
             // home: ProductsScreen(),
-            home: startScreen,
+            home: SplashScreen(startScreen: startScreen),
           );
         },
       ),

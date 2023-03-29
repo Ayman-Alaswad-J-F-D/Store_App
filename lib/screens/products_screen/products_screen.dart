@@ -28,6 +28,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     AppCubit.get(context).getProductsData();
+    AppCubit.get(context).createDatabase();
     super.initState();
   }
 
