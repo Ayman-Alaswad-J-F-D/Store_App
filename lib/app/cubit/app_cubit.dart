@@ -287,10 +287,7 @@ class AppCubit extends Cubit<AppStates> {
   }
 
   bool showDone({required int index}) {
-    if (cardUser[index].quantity > updateQuantity[index]) {
-      return true;
-    }
-    if (cardUser[index].quantity < updateQuantity[index]) {
+    if (cardUser[index].quantity != updateQuantity[index]) {
       return true;
     } else {
       return false;
