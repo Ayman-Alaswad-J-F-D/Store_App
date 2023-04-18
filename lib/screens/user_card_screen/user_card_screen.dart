@@ -4,14 +4,12 @@ import 'package:conditional_builder/conditional_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-// import 'package:slimy_card/slimy_card.dart';
 
 import '../../app/constants.dart';
 import '../../app/cubit/app_cubit.dart';
 import '../../widget/custom_app_bar.dart';
-import '../../widget/fade_route_animation.dart';
 import '../../widget/list_view_animation.dart';
-import '../edit_screen/edit_screen.dart';
+import 'components/user_card_bottom_sheet.dart';
 import 'components/user_card_fallback_conditional.dart';
 import 'components/user_card_info.dart';
 
@@ -27,76 +25,48 @@ class UserCardScreen extends StatelessWidget {
           appBar: CustomAppBar(textTitle: 'User Card'),
           body: ConditionalBuilder(
             condition: cubit.cardUser.isNotEmpty,
-            builder: (context) => SingleChildScrollView(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: cubit.listProduct != null ? 0 : 10,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Your Product',
-                          style: TextStyle(color: kPrimaryColor, fontSize: 17),
-                        ),
-                        if (cubit.listProduct != null)
-                          TextButton.icon(
-                            icon: const Icon(Icons.edit, color: kPrimaryColor),
-                            label: const Text(
-                              'Edit',
-                              style: TextStyle(color: kPrimaryColor),
-                            ),
-                            onPressed: () => Navigator.push(
-                              context,
-                              FadeRouteAnimation(page: const EditScreen()),
-                            ),
-                          ),
-                      ],
-                    ),
+            builder: (context) => Container(
+              margin: const EdgeInsets.only(
+                top: 10,
+                right: 10,
+                left: 10,
+                bottom: 70,
+              ),
+              child: AnimationLimiter(
+                child: ListView.separated(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  AnimationLimiter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
+                  itemCount: cubit.cardUser.length,
+                  itemBuilder: (context, index) => Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: CircleAvatar(
+                          child: Text((index + 1).toString()),
+                          backgroundColor: kSecondPrimaryColor,
+                          foregroundColor: kWhiteColor,
                         ),
-                        itemCount: cubit.cardUser.length,
-                        itemBuilder: (context, index) => Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: CircleAvatar(
-                                child: Text((index + 1).toString()),
-                                backgroundColor: kSecondPrimaryColor,
-                                foregroundColor: kWhiteColor,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              flex: 8,
-                              child: ListViewAnimation(
-                                child: UserCardInfo(index: index),
-                                index: index,
-                              ),
-                            ),
-                          ],
-                        ),
-                        separatorBuilder: (context, index) =>
-                            const Divider(color: kWhiteColor, height: 25),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 8,
+                        child: ListViewAnimation(
+                          child: UserCardInfo(index: index),
+                          index: index,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                  separatorBuilder: (context, index) =>
+                      const Divider(color: kWhiteColor, height: 25),
+                ),
               ),
             ),
             fallback: (context) =>
                 UserCardFallBackConditional(state: state, cubit: cubit),
           ),
+          bottomSheet: UserCardBottomSheet(cubit: cubit),
         );
       },
     );

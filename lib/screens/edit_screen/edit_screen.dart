@@ -1,15 +1,13 @@
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:conditional_builder/conditional_builder.dart';
-// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import 'package:store_app/screens/edit_screen/components/edit_fall_back_condational.dart';
-
 import '../../app/constants.dart';
 import '../../app/cubit/app_cubit.dart';
 import '../../widget/custom_app_bar.dart';
+import '../../widget/custom_circular_progress.dart';
 import '../../widget/custom_snack_bar.dart';
 import '../../widget/list_view_animation.dart';
 import 'components/custom_list_tile.dart';
@@ -43,7 +41,6 @@ class _EditScreenState extends State<EditScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(5.0),
                 child: ListView.separated(
-                  shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   physics: const BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
@@ -90,13 +87,18 @@ class _EditScreenState extends State<EditScreen> {
                                         id: cubit.cardUser[index].id,
                                         quantity: cubit.updateQuantity[index],
                                       )
-                                      .then((_) => ScaffoldMessenger.of(context)
-                                              .showSnackBar(CustomSnakBar(
-                                            text:
-                                                'The product has been modified',
+                                      .then(
+                                        (_) => ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          CustomSnakBar(
+                                            child: const Text(
+                                              'The product has been modified',
+                                            ),
                                             backgroundColor:
                                                 kSecondPrimaryColor,
-                                          ))),
+                                          ),
+                                        ),
+                                      ),
                                   label: const Text(
                                     'Done',
                                     style: TextStyle(color: kWhiteColor),
@@ -134,8 +136,7 @@ class _EditScreenState extends State<EditScreen> {
                 ),
               ),
             ),
-            fallback: (context) =>
-                EditFallBackCondational(cubit: cubit, state: state),
+            fallback: (context) => const CustomCircularProgress(),
           ),
         );
       },

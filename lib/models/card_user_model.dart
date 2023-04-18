@@ -1,5 +1,6 @@
 class LocalCardUsersModel {
   final int id;
+  final int idProduct;
   final String title;
   final String price;
   final String description;
@@ -10,6 +11,7 @@ class LocalCardUsersModel {
 
   LocalCardUsersModel({
     required this.id,
+    required this.idProduct,
     required this.title,
     required this.description,
     required this.price,
@@ -22,6 +24,7 @@ class LocalCardUsersModel {
   factory LocalCardUsersModel.fromJson(Map<String, dynamic> json) {
     return LocalCardUsersModel(
       id: json['id'],
+      idProduct: json['productId'],
       title: json['title'],
       price: json['price'],
       description: json['description'],

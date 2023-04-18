@@ -9,16 +9,14 @@ class UserCardFallBackConditional extends StatelessWidget {
     Key? key,
     required this.state,
     required this.cubit,
-    // required this.userId,
   }) : super(key: key);
 
   final AppStates state;
   final AppCubit cubit;
-  // final String userId;
 
   @override
   Widget build(BuildContext context) {
-    if (cubit.cardUser.isEmpty && state is IsClearCardeState) {
+    if (cubit.cardUser.isEmpty) {
       return const FallBackWidget(
         text: 'Your Card is Empty ...',
         needBottom: false,

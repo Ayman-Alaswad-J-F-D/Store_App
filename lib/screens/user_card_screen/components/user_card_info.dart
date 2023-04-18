@@ -46,7 +46,7 @@ class UserCardInfo extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                cubit.cardUser[index].id.toString(),
+                cubit.cardUser[index].idProduct.toString(),
                 style: const TextStyle(color: kWhiteColor, fontSize: 16),
               ),
               Text(

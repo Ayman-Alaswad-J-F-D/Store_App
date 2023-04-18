@@ -89,8 +89,8 @@ class ConnectAsBody extends StatelessWidget {
                         Navigator.pop(context);
                         return ScaffoldMessenger.of(context).showSnackBar(
                           CustomSnakBar(
-                            text:
-                                'Your message has been received. Thank you for reaching out.',
+                            child: const Text(
+                                'Your message has been received. Thank you for reaching out.'),
                           ),
                         );
                       },

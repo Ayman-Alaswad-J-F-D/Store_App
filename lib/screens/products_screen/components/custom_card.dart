@@ -148,6 +148,20 @@ class _CustomCardState extends State<CustomCard> {
             ),
           ),
           CustomImageNetwork(widget: widget),
+          Container(
+            width: 16,
+            height: 16,
+            child: Center(
+              child: Text(
+                widget.product.id.toString(),
+                style: const TextStyle(color: kWhiteColor, fontSize: 10),
+              ),
+            ),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: kSecondPrimaryColor,
+            ),
+          ),
 
           // Container(
           //   color: Colors.transparent,

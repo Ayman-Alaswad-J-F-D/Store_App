@@ -55,8 +55,6 @@ class DeleteDatabaseState extends AppStates {}
 
 class UpdateDatabaseState extends AppStates {}
 
-class IsClearCardeState extends AppStates {}
-
 class IncreaseQuantityState extends AppStates {}
 
 class DecreaseQuantityState extends AppStates {}

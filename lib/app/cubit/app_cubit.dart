@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, avoid_function_literals_in_foreach_calls
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -140,35 +140,6 @@ class AppCubit extends Cubit<AppStates> {
     }
   }
 
-  // Future<void> addToCard(ProductModel product, context) async {
-  //   showDialog(
-  //     barrierDismissible: false,
-  //     context: context,
-  //     builder: (builder) {
-  //       return const CustomCircularProgress();
-  //     },
-  //   );
-  //   cardModel = await AddToCard.addToCard(
-  //     userId: userModel?.data?.id.toString() ?? "5",
-  //     dataTime: DateTime.now().toString(),
-  //     productsId: product.id.toString(),
-  //     quantity: quantity.toString(),
-  //   );
-  // }
-
-  // Future<void> updateProduct(ProductModel product) async {
-  //   await UpdateProductService.updateProduct(
-  //     id: product.id,
-  //     title: productName ?? product.title,
-  //     price: price ?? product.price.toString(),
-  //     description: description ?? product.description,
-  //     image: image ?? product.image,
-  //     categories: product.category,
-  // rate: product.rating.rate,
-  // count: product.rating.count,
-  //   );
-  // }
-
   Future<void> changeFavoritess(int productId) async {
     if (myFavorites.contains(productId)) {
       myFavorites.remove(productId);
@@ -211,6 +182,19 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
+  void addToCard({dynamic product}) async {
+    insertDatabase(
+      productId: product.id,
+      title: product.title,
+      desc: product.description,
+      category: product.category,
+      image: product.image,
+      quantity: quantity,
+      price: product.price.toString(),
+      dataTime: DateTime.now().toString(),
+    );
+  }
+
   insertDatabase({
     int? productId,
     String? title,
@@ -222,11 +206,10 @@ class AppCubit extends Cubit<AppStates> {
     int? quantity,
   }) async {
     await database?.transaction((txn) {
-      txn
-          .rawInsert(
-        'INSERT INTO cards(productId, title, desc, price, category, image, quantity, dataTime) VALUES("$productId","$title","$desc","$price","$category","$image","$quantity","$dataTime")',
-      )
-          .then((value) {
+      txn.rawInsert(
+        'INSERT INTO cards(productId, title, desc, price, category, image, quantity, dataTime) VALUES(?,?,?,?,?,?,?,?)',
+        [productId, title, desc, price, category, image, quantity, dataTime],
+      ).then((value) {
         print('$value Insert Successfully');
         emit(InsertDatabaseState());
         getFromDatabase(database);
@@ -234,15 +217,17 @@ class AppCubit extends Cubit<AppStates> {
         print('Error when inserting new record ${error.toString()}');
       });
       return Future.delayed(const Duration(microseconds: 100), () {
-        print("Done");
+        print("Done Insert");
       });
     });
   }
 
   Future<void> updateData({required int id, required int quantity}) async {
-    database!.rawUpdate('UPDATE cards SET quantity = ? WHERE id = ?',
-        [quantity, id]).then((value) {
-      print('Update ' + value.toString());
+    database!.rawUpdate(
+      'UPDATE cards SET quantity = ? WHERE id = ?',
+      [quantity, id],
+    ).then((value) {
+      print('Update' + value.toString());
       getFromDatabase(database);
       emit(UpdateDatabaseState());
     });
@@ -256,6 +241,18 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
+  bool isInCard({int? idProduct}) {
+    inListCard:
+    for (int i = 0; i < cardUser.length; i++) {
+      if (cardUser[i].idProduct == idProduct) {
+        return true;
+      } else {
+        continue inListCard;
+      }
+    }
+    return false;
+  }
+
   void getFromDatabase(database) {
     cardUser = [];
 
@@ -263,9 +260,6 @@ class AppCubit extends Cubit<AppStates> {
     database.rawQuery('SELECT * FROM cards').then((value) {
       value.forEach((element) {
         cardUser.add(LocalCardUsersModel.fromJson(element));
-        if (cardUser.isEmpty) {
-          emit(IsClearCardeState());
-        }
       });
       emit(GetDatabaseState());
     });

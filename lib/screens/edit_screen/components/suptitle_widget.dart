@@ -62,9 +62,10 @@ class SuptitleWidget extends StatelessWidget {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     CustomSnakBar(
-                      text:
-                          'Max Quantity This Product is ${cubit.listProduct![index].rating!.count}',
                       backgroundColor: kSecondPrimaryColor,
+                      child: Text(
+                        'Max Quantity This Product is ${cubit.listProduct![index].rating!.count}',
+                      ),
                     ),
                   );
                 }

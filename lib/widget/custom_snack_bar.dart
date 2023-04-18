@@ -4,12 +4,13 @@ import '../app/constants.dart';
 
 // ignore: non_constant_identifier_names
 SnackBar CustomSnakBar({
-  required String text,
+  required Widget child,
+  double elevation = 8,
   Color backgroundColor = kPrimaryColor,
 }) {
   return SnackBar(
-    content: Text(text),
+    content: child,
+    elevation: elevation,
     backgroundColor: backgroundColor,
-    elevation: 8,
   );
 }
