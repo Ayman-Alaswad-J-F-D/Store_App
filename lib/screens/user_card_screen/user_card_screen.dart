@@ -66,7 +66,9 @@ class UserCardScreen extends StatelessWidget {
             fallback: (context) =>
                 UserCardFallBackConditional(state: state, cubit: cubit),
           ),
-          bottomSheet: UserCardBottomSheet(cubit: cubit),
+          bottomSheet: cubit.cardUser.isNotEmpty
+              ? UserCardBottomSheet(cubit: cubit)
+              : null,
         );
       },
     );

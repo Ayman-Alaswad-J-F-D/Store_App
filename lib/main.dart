@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:store_app/app/constants.dart';
-import 'package:store_app/helper/local/cache_helper.dart';
-
-import 'package:store_app/screens/login_screen/cubit/login_cubit.dart';
-import 'package:store_app/screens/login_screen/login_screen.dart';
-import 'package:store_app/screens/products_screen/products_screen.dart';
-import 'package:store_app/screens/register_screen/cubit/register_cubit.dart';
-import 'package:store_app/screens/splash_screen/splash_screen.dart';
-
+import 'app/constants.dart';
+import 'helper/local/cache_helper.dart';
+import 'screens/login_screen/cubit/login_cubit.dart';
+import 'screens/register_screen/cubit/register_cubit.dart';
+import 'screens/splash_screen/splash_screen.dart';
 import 'app/cubit/app_cubit.dart';
+import 'app/functions/check_login.dart';
 import 'bloc_observer.dart';
 
 void main() async {
   await GetStorage.init();
-  Widget widget;
+  Widget? widget;
   token = CacheHelper.getData(key: 'token');
 
-  if (token != '') {
-    widget = const ProductsScreen();
-  } else {
-    widget = LoginScreen();
-  }
-
   Bloc.observer = MyBlocObserver();
+  runApp(StoreApp(startScreen: checkLogin(widget)));
+
   // runApp(DevicePreview(builder: (context) => StoreApp(startScreen: widget)));
-  runApp(StoreApp(startScreen: widget));
 }
 
 class StoreApp extends StatelessWidget {
@@ -47,7 +39,6 @@ class StoreApp extends StatelessWidget {
           return MaterialApp(
             // builder: DevicePreview.appBuilder,
             debugShowCheckedModeBanner: false,
-            // home: ProductsScreen(),
             home: SplashScreen(startScreen: startScreen),
           );
         },
