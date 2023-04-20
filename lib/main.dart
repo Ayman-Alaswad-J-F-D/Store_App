@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_storage/get_storage.dart';
-import 'app/constants.dart';
-import 'helper/local/cache_helper.dart';
 import 'screens/login_screen/cubit/login_cubit.dart';
 import 'screens/register_screen/cubit/register_cubit.dart';
 import 'screens/splash_screen/splash_screen.dart';
@@ -13,7 +11,6 @@ import 'bloc_observer.dart';
 void main() async {
   await GetStorage.init();
   Widget? widget;
-  token = CacheHelper.getData(key: 'token');
 
   Bloc.observer = MyBlocObserver();
   runApp(StoreApp(startScreen: checkLogin(widget)));
