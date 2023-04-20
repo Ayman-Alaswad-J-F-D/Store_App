@@ -2,12 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:store_app/app/cubit/app_cubit.dart';
-// import 'package:store_app/widget/fade_route_animation.dart';
+import 'package:store_app/screens/products_screen/products_screen.dart';
+import 'package:store_app/widget/fade_route_animation.dart';
 
 import '../../../app/constants.dart';
 import '../../../helper/local/cache_helper.dart';
 import '../../../widget/show_toast.dart';
-// import '../../screens/products_screen/products_screen.dart';
 
 Future<void> functionListenerSuccessState({
   required BuildContext context,
@@ -23,6 +23,10 @@ Future<void> functionListenerSuccessState({
       AppCubit.get(context).myFavorites.clear();
       token = state.userModel.data!.token;
       print(token);
+      Navigator.pushReplacement(
+        context,
+        FadeRouteAnimation(page: const ProductsScreen()),
+      );
     }).catchError((e) {
       showToastLong(text: e.toString(), state: ToastStates.ERROR);
     });

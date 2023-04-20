@@ -30,13 +30,9 @@ class LoginScreen extends StatelessWidget {
     return BlocConsumer<LoginCupit, LoginStates>(
       listener: (context, state) {
         if (state is LoginSuccessState) {
-          functionListenerSuccessState(context: context, state: state).then(
-            (_) => Navigator.pushReplacement(
-              context,
-              FadeRouteAnimation(page: const ProductsScreen()),
-            ),
-          );
-        } else if (state is LoginErrorState) {
+          functionListenerSuccessState(context: context, state: state);
+        }
+        if (state is LoginErrorState) {
           print(state.error);
           showToastLong(text: state.error, state: ToastStates.ERROR);
         }
