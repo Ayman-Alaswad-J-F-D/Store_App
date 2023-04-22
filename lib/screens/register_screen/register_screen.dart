@@ -27,11 +27,15 @@ class RegisterScreen extends StatelessWidget {
       listener: (context, state) {
         if (state is RegisterSuccessState) {
           functionListenerSuccessState(context: context, state: state)
-              .then((_) => Navigator.pop(context))
-              .then((_) => showToastShort(
-                    text: 'Please Login now',
-                    state: ToastStates.WARNING,
-                  ));
+              .then((value) {
+            if (value) {
+              Navigator.of(context).pop();
+              showToastShort(
+                text: 'Please Login now',
+                state: ToastStates.WARNING,
+              );
+            }
+          });
         }
       },
       builder: (context, state) {
