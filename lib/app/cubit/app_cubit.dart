@@ -1,290 +1,301 @@
-// ignore_for_file: avoid_print, avoid_function_literals_in_foreach_calls
+import 'dart:async';
+import 'dart:developer' as dev;
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:store_app/models/card_user_model.dart';
 
-import '../../../models/card_model.dart';
-import '../../../models/user_model.dart';
 import '../../../services/all_product_service.dart';
+import '../../database/class_create_database.dart';
+import '../../database/class_delete_database.dart';
+import '../../database/class_insert_database.dart';
+import '../../database/class_read_database.dart';
+import '../../database/class_update_database.dart';
 import '../../helper/local/cache_helper.dart';
-import '../../helper/remote/users_api.dart';
-import '../../models/catefories_model.dart';
+import '../../models/card_user_model.dart';
 import '../../models/product_model.dart';
-import '../../services/all_categories_srevice.dart';
-import '../../services/categories_service.dart';
-import '../../services/end point/users_end_point.dart';
-import '../../services/get_user_cart_service.dart';
-import '../constants.dart';
+import '../extensions.dart';
+import '../functions/toast_snack_bar.dart';
 
 part 'app_state.dart';
 
-class AppCubit extends Cubit<AppStates> {
+class AppCubit extends Cubit<AppStates>
+    with
+        ExecuteCreateDB,
+        ExecuteReadDB,
+        ExecuteInsertDB,
+        ExecuteUpdateDB,
+        ExecuteDeleteDB {
   AppCubit() : super(AppInitial());
-  static AppCubit get(context) => BlocProvider.of(context);
+  static AppCubit get(context) => BlocProvider.of<AppCubit>(context);
 
-  List<ProductModel>? listProduct;
-  List<CategoriesModel>? listCategoriesDetails;
-  List<CardModel>? listCardUsersModel;
-  List<dynamic>? listCategories;
+  final List<ProductModel> products = [];
+  final List<dynamic> cachedFavorite =
+      CacheHelper.getData(key: "Favorites") ?? [];
 
-  UserModel? userModel;
-
-  int quantity = 1;
-  List<dynamic> myFavorites = CacheHelper.getData(key: 'Favorites') ?? [];
-
-  Future<void> getUserData() async {
-    emit(LoadingUserDataState());
-    await UsersApi.get(
-      url: PROFILE,
-      token: token,
-    ).then((value) {
-      userModel = UserModel.fromJson(value);
-      // printFullText(value.data);
-      print('status is User Data ${userModel?.status}');
-      print(userModel?.data?.name);
-
-      emit(SuccessUserDataState(userModel: userModel!));
-    }).catchError((error) {
-      print(error.toString());
-      emit(ErrorUserDataState());
-    });
+  //* Executed when scrolling down in the product screen
+  void refreshProductData() {
+    products.clear();
+    getProductsData();
   }
 
-  final InternetConnectionChecker connectionChecker =
-      InternetConnectionChecker();
-
+  //* Fetch all product data and then extraction first images and categories
   void getProductsData() async {
+    if (products.isNotEmpty) return;
     emit(ProductsLoadingState());
-
-    if (await connectionChecker.hasConnection) {
-      AllProductService.getAllProduct().then((value) {
-        listProduct = value;
-        print(listProduct?[0].title);
-        print(listProduct?[0].category);
-        print(listProduct?[0].price);
-
-        emit(ProductsSuccessState());
-      }).then((value) {
-        // * Get User Data
-        if (userModel == null) {
-          getUserData();
-        }
-        // * Get Categories Data
-        if (listCategories == null) {
-          getCategoriesData();
-        }
-      }).catchError((error) {
-        print(error.toString());
-        emit(ProductsErrorState());
-      });
-    } else {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        emit(CheckConnectionState());
-      });
-    }
-  }
-
-  Future<void> getCategoriesData() async {
-    emit(CategoriesLoadingState());
-    await AllCategoriesSrevice.getAllCategories().then((value) {
-      listCategories = value;
-      emit(CategoriesSuccessState());
+    await hasConnection();
+    await AllProductService.getAllProduct().then((value) {
+      //* Fill list products
+      products.addAll(value);
+      dev.log(products[0].toString());
+    }).then((_) {
+      _extractionFirstImagesAndCategories();
+      emit(ProductsSuccessState());
     }).catchError((error) {
-      print(error.toString());
-      emit(CategoriesErrorState());
+      dev.log(error.toString());
+      emit(ProductsErrorState());
     });
   }
 
-  void getCategoriesDetails({required String categoryName}) async {
-    emit(CategoriesDetailsLoadingState());
-
-    if (await connectionChecker.hasConnection) {
-      CategoriesService.getCategoriesProduct(categoryName: categoryName)
-          .then((value) {
-        listCategoriesDetails = value;
-        print(value[0].title);
-        print(value[0].price);
-        print(value[0].category);
-
-        emit(CategoriesDetailsSuccessState());
-      }).catchError((error) {
-        print(error.toString());
-        emit(CategoriesDetailsErrorState());
-      });
-    } else {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        emit(CheckConnectionState());
-      });
+  Future<void> hasConnection() async {
+    if (!await checkConnection()) {
+      Future.delayed(
+        const Duration(seconds: 2),
+        () => emit(CheckConnectionState()),
+      );
     }
   }
 
-  void getUserCard({required String userId}) async {
-    emit(UserCardLoadingState());
-    if (await connectionChecker.hasConnection) {
-      GetUserCart.getUserCart(userId: userId).then((value) {
-        listCardUsersModel = value;
-        print(value[0].product?[0].productId);
-        print(value[0].product?[0].quantity);
-        emit(UserCardSuccessState());
-      }).catchError((error) {
-        print(error.toString());
-        emit(UserCardErrorState());
-      });
+  Future<bool> checkConnection() async =>
+      await InternetConnectionChecker().hasConnection;
+
+  //* Add or delete product to favorite list and cached that in cache memory
+  void changeFavorites(int productId) async {
+    if (cachedFavorite.contains(productId)) {
+      cachedFavorite.remove(productId);
+      emit(ChangeFavoriteState());
+      await CacheHelper.saveData(key: "Favorites", value: cachedFavorite);
     } else {
-      Future.delayed(const Duration(milliseconds: 500), () {
-        emit(CheckConnectionState());
-      });
+      cachedFavorite.add(productId);
+      emit(ChangeFavoriteState());
+      await CacheHelper.saveData(key: "Favorites", value: cachedFavorite);
     }
   }
 
-  Future<void> changeFavoritess(int productId) async {
-    if (myFavorites.contains(productId)) {
-      myFavorites.remove(productId);
-      print(myFavorites);
+  //* Get the first images and first categories for products list
+  final List<Map<String, String>> firstImagesAndCategories = [];
+  final List<String> categoriesImages = [];
+  final List<String> categories = [];
 
-      await CacheHelper.saveData(key: 'Favorites', value: myFavorites);
-      emit(ChangeFavoretisState());
-    } else {
-      myFavorites.add(productId);
-      print('Add All $myFavorites');
+  void _extractionFirstImagesAndCategories() {
+    if (firstImagesAndCategories.isNotEmpty) return;
+    final Map<String, String> imageAndCategory = {};
+    _fillImagesAndCategoriesFromListProduct(imageAndCategory);
+    _fillFirstImagesAndCategories(imageAndCategory);
+    _fillFirstCategories();
+    _fillFirstImages();
+  }
 
-      await CacheHelper.saveData(key: 'Favorites', value: myFavorites);
-      emit(ChangeFavoretisState());
+  void _fillImagesAndCategoriesFromListProduct(
+    Map<String, String> imageAndCategory,
+  ) {
+    for (ProductModel product in products) {
+      if (!imageAndCategory.containsKey(product.category)) {
+        imageAndCategory[product.category] = product.image;
+      }
     }
   }
 
-  // ? Branch Database
-
-  Database? database;
-  List<LocalCardUsersModel> cardUser = [];
-
-  void createDatabase() {
-    // open the database
-    openDatabase('cards.db', version: 1, onCreate: (database, version) async {
-      // When creating the db, create the table
-      print('Database Created');
-      await database
-          .execute(
-            'CREATE TABLE cards (id INTEGER PRIMARY KEY, productId INTEGER, title TEXT, desc TEXT, price TEXT,category TEXT, image TEXT, quantity INTEGER, dataTime TEXT)',
-          )
-          .then((value) => print('Table Created'))
-          .catchError(
-              (error) => print('Error when created table ${error.toString()}'));
-    }, onOpen: (database) {
-      getFromDatabase(database);
-      print('Database Opened');
-    }).then((value) {
-      database = value;
-      emit(CreateDatabaseState());
-    });
-  }
-
-  void addToCard({dynamic product}) async {
-    insertDatabase(
-      productId: product.id,
-      title: product.title,
-      desc: product.description,
-      category: product.category,
-      image: product.image,
-      quantity: quantity,
-      price: product.price.toString(),
-      dataTime: DateTime.now().toString(),
+  void _fillFirstImagesAndCategories(Map<String, String> imageAndCategory) {
+    firstImagesAndCategories.addAll(
+      imageAndCategory.entries
+          .map((e) => {"category": e.key, "image": e.value})
+          .toList(),
     );
   }
 
-  insertDatabase({
-    int? productId,
-    String? title,
-    String? desc,
-    String? price,
-    String? category,
-    String? image,
-    String? dataTime,
-    int? quantity,
-  }) async {
-    await database?.transaction((txn) {
-      txn.rawInsert(
-        'INSERT INTO cards(productId, title, desc, price, category, image, quantity, dataTime) VALUES(?,?,?,?,?,?,?,?)',
-        [productId, title, desc, price, category, image, quantity, dataTime],
-      ).then((value) {
-        print('$value Insert Successfully');
-        emit(InsertDatabaseState());
-        getFromDatabase(database);
-      }).catchError((error) {
-        print('Error when inserting new record ${error.toString()}');
-      });
-      return Future.delayed(const Duration(microseconds: 100), () {
-        print("Done Insert");
-      });
-    });
+  void _fillFirstCategories() {
+    categories.addAll(
+      firstImagesAndCategories
+          .map((category) => category["category"]!)
+          .toList(),
+    );
   }
 
-  Future<void> updateData({required int id, required int quantity}) async {
-    database!.rawUpdate(
-      'UPDATE cards SET quantity = ? WHERE id = ?',
-      [quantity, id],
-    ).then((value) {
-      print('Update' + value.toString());
-      getFromDatabase(database);
-      emit(UpdateDatabaseState());
-    });
+  void _fillFirstImages() {
+    categoriesImages.addAll(
+      firstImagesAndCategories.map((image) => image["image"]!).toList(),
+    );
   }
 
-  Future<void> deleteData({required int id, required int index}) async {
-    database!.rawDelete('DELETE FROM cards WHERE id = ?', [id]).then((value) {
-      updateQuantity.removeAt(index);
-      getFromDatabase(database);
-      emit(DeleteDatabaseState());
-    });
+  ///?________________________________________ Database Branch for ( User Card ) ________________________________________///
+
+  final List<LocalUserCardModel> cardUser = <LocalUserCardModel>[];
+  final List<int> quantityHelper = <int>[];
+  int quantity = 1;
+
+  //* Initialize the database when the application is launched for the first time
+  void initLocalDB() => executeCreateLocalDatabase();
+
+  //* Execute insert function into database
+  void addToCard({required ProductModel product}) async {
+    await executeInsertIntoDatabase(product: product, quantity: quantity)
+        .then((_) => _getProductsFromDB())
+        .then((_) => emit(InsertDatabaseState()));
   }
 
-  bool isInCard({int? idProduct}) {
-    inListCard:
-    for (int i = 0; i < cardUser.length; i++) {
-      if (cardUser[i].idProduct == idProduct) {
-        return true;
-      } else {
-        continue inListCard;
+  //* Update product qunatity from user card
+  void updateProductQuantityFromUserCard({required int index}) async =>
+      await executeUpdateInDatabase(
+        id: cardUser[index].id,
+        quantity: quantityHelper[index],
+      )
+          .then((_) => _getProductsFromDB())
+          .then((_) => emit(UpdateDatabaseState()));
+
+  //* Delete product from user card
+  void deleteProductFromUserCard({required int index}) {
+    quantityHelper.removeAt(index);
+    executeDelete(id: cardUser[index].id)
+        .then((_) => _getProductsFromDB())
+        .then((_) => emit(DeleteDatabaseState()));
+  }
+
+  //* Get products for user card
+  void _getProductsFromDB() async {
+    cardUser.clear();
+    await executeReadeDataFromDatabase()
+        .then((products) => _fillCardUser(products))
+        .then((_) => _calculatePriceAndQuantity());
+  }
+
+  //* Fill card list from database
+  void _fillCardUser(List<Map<String, Object?>> products) {
+    cardUser.addAll(
+      products.map((product) => LocalUserCardModel.fromMap(product)).toList(),
+    );
+  }
+
+  //* Calculation price and quantity after update card list item
+  void _calculatePriceAndQuantity() {
+    _fillQuantityHelper();
+    _getTotalPriceForProduct();
+    _getTotalPriceForAllProducts();
+  }
+
+  //* Fill quantity helper from card list
+  void _fillQuantityHelper() {
+    quantityHelper.clear();
+    quantityHelper.addAll(cardUser.map((product) => product.quantity).toList());
+    log("Quantity Helper: $quantityHelper");
+  }
+
+  //* Calculation total price for SINGLE product after update the quantity of the card list item
+  List<double> totalPriceForProduct = [];
+  void _getTotalPriceForProduct() {
+    try {
+      if (cardUser.isNotEmpty) {
+        totalPriceForProduct = _calculationTotalPrice();
       }
+    } catch (error) {
+      log(error.toString(), name: "Get Total Price For Product");
     }
-    return false;
+    log("Total Price For Product: $totalPriceForProduct");
   }
 
-  void getFromDatabase(database) {
-    cardUser = [];
-
-    emit(GetDatabaseLoadingState());
-    database.rawQuery('SELECT * FROM cards').then((value) {
-      value.forEach((element) {
-        cardUser.add(LocalCardUsersModel.fromJson(element));
-      });
-      emit(GetDatabaseState());
-    });
+  //* Calculation the total price of [All] products after updating the quantity of the card list item
+  double totalPrice = 0.0;
+  void _getTotalPriceForAllProducts() {
+    try {
+      if (cardUser.isNotEmpty) _calculationTotalPriceForAllProduct();
+    } catch (error) {
+      log(error.toString(), name: "Get Total Price For All Products");
+    }
+    log("Total Price For All: $totalPrice");
   }
 
-  final List<int> updateQuantity = [];
-  Color backgroundEditProduct = kSecondPrimaryColor;
-
-  increaseQuantityData({required int index}) {
-    updateQuantity[index]++;
-    // backgroundEditProduct = kIconLoveColor;
-    emit(IncreaseQuantityState());
+  //* Collection of product prices
+  void _calculationTotalPriceForAllProduct() {
+    // To round to just two decimal places,
+    // we multiply by 100 and then round and then divide by 100
+    totalPrice = _calculationTotalPrice()
+        .reduce((prevPrice, currPrice) => prevPrice + currPrice)
+        .roundingToTwoDecimal();
   }
 
-  decreaseQuantityData({required int index}) {
-    updateQuantity[index]--;
-    // backgroundEditProduct = kIconLoveColor;
-    emit(DecreaseQuantityState());
+  //* Calculation the total price for products
+  List<double> _calculationTotalPrice() {
+    return cardUser
+        .map(
+          (product) => (product.price * product.quantity)
+              .toDouble()
+              .roundingToTwoDecimal(),
+        )
+        .toList();
   }
 
-  bool showDone({required int index}) {
-    if (cardUser[index].quantity != updateQuantity[index]) {
-      return true;
+  //* Increase quantity in card list (edit_product_screen)
+  void increaseQuantityItem({
+    required int index,
+    required BuildContext context,
+  }) {
+    if (quantityHelper[index] <= products[index].rating!.count) {
+      quantityHelper[index]++;
     } else {
-      return false;
+      toastSnackBar(
+        context: context,
+        text: "Max Quantity This Product is ${products[index].rating!.count}",
+      );
+    }
+  }
+
+  //* Decrease quantity in card list (edit_product_screen)
+  void decreaseQuantityItem({required int index}) {
+    if (quantityHelper[index] > 1) quantityHelper[index]--;
+  }
+
+  //* Increase quantity in (product_details_screen)
+  void increaseQuantityProduct({
+    required ProductModel product,
+    required BuildContext context,
+  }) {
+    if (quantity <= product.rating!.count) {
+      quantity++;
+    } else {
+      toastSnackBar(
+        context: context,
+        text: "Max Quantity This Product is ${product.rating!.count}",
+      );
+    }
+  }
+
+  //* Decrease quantity in (product_details_screen)
+  void decreaseQuantityProduct() => {if (quantity > 1) quantity--};
+
+  //* Check if product in card list
+  bool isInCard({required int idProduct}) =>
+      cardUser.any((product) => product.idProduct == idProduct);
+
+  //* Show edit confirm when Increase or Decrease on item card list quantity
+  bool shouldShowUpdateConfirm({required int index}) =>
+      cardUser[index].quantity != quantityHelper[index];
+
+  //* Function for Pick image from device
+  File pictureFromGallery = File("");
+  Future pickImage({ImageSource imageSource = ImageSource.gallery}) async {
+    try {
+      final image = await ImagePicker().pickImage(source: imageSource);
+      if (image == null) return;
+      pictureFromGallery = File(image.path);
+      dev.log(pictureFromGallery.toString());
+      emit(ImagePickerState());
+      //* Post Imge to API
+    } on PlatformException catch (e) {
+      dev.log("Failed to pick image: $e");
     }
   }
 }
