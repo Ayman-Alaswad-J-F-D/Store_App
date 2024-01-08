@@ -6,10 +6,16 @@ class ListViewAnimation extends StatelessWidget {
     Key? key,
     required this.index,
     required this.child,
+    this.verticalOffset,
+    this.horizontalOffset,
+    this.flipAxis = FlipAxis.x,
   }) : super(key: key);
 
   final int index;
   final Widget child;
+  final double? verticalOffset;
+  final double? horizontalOffset;
+  final FlipAxis flipAxis;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +25,12 @@ class ListViewAnimation extends StatelessWidget {
       child: SlideAnimation(
         duration: const Duration(milliseconds: 2500),
         curve: Curves.fastLinearToSlowEaseIn,
-        // horizontalOffset: 30,
-        // verticalOffset: 300.0,
+        horizontalOffset: horizontalOffset,
+        verticalOffset: verticalOffset,
         child: FlipAnimation(
           duration: const Duration(milliseconds: 2500),
           curve: Curves.fastLinearToSlowEaseIn,
-          // flipAxis: FlipAxis.y,
+          flipAxis: flipAxis,
           child: child,
         ),
       ),
