@@ -20,6 +20,8 @@
 # is commented out by default.
 #.vscode/
 
+/code_animation_ignore.txt
+/ignore_files
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -30,6 +32,7 @@
 .pub-cache/
 .pub/
 /build/
+/assets/ca
 
 # Web related
 lib/generated_plugin_registrant.dart
