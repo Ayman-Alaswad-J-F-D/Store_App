@@ -1,29 +1,31 @@
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 
-import '../app/constants.dart';
+import '../theme/colors.dart';
+import 'custom_animated_text.dart';
 
 class CustomButton extends StatelessWidget {
   const CustomButton({
     Key? key,
     this.text = '',
-    required this.onTap,
-    this.height = 20,
+    this.onTap,
+    this.height = 10,
     this.fontSize = 16,
     this.backgroundColor,
     this.colorText,
     this.trueChild = false,
     this.child,
+    this.duration = 5,
   }) : super(key: key);
 
   final String text;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final double height;
   final double fontSize;
   final Color? backgroundColor;
   final Color? colorText;
   final bool trueChild;
   final Widget? child;
+  final int duration;
 
   @override
   Widget build(BuildContext context) {
@@ -34,19 +36,19 @@ class CustomButton extends StatelessWidget {
           : DefaultTextStyle(
               style: TextStyle(
                 fontSize: fontSize,
-                color: colorText ?? kPrimaryTextColor,
+                color: colorText ?? AppColors.secondPrimaryColor,
+                fontFamily: 'Pacifico',
               ),
-              child: AnimatedTextKit(
-                animatedTexts: [WavyAnimatedText(text)],
-                pause: const Duration(seconds: 5),
-                repeatForever: true,
+              child: CustomAnimatedText(
+                animatedtext: text,
+                pause: Duration(seconds: duration),
               ),
             ),
       style: ElevatedButton.styleFrom(
+        foregroundColor: AppColors.lightGrayColor,
+        backgroundColor: backgroundColor ?? AppColors.whiteColor,
         padding: EdgeInsets.symmetric(vertical: height),
-        onPrimary: kLightGrayColor,
         minimumSize: const Size(double.infinity, 0),
-        primary: backgroundColor ?? kWhiteColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
       ),
     );
