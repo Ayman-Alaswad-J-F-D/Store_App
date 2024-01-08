@@ -1,8 +1,10 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
+import 'dart:developer';
+
 import 'package:http/http.dart' as http;
-import 'package:store_app/app/constants.dart';
+import 'package:store_app/app/constants/constants.dart';
 
 class UsersApi {
   static Future<dynamic> get({
@@ -29,7 +31,8 @@ class UsersApi {
     );
 
     if (response.statusCode == 200) {
-      print('url = $url\ntoken = $token\n${response.body}');
+      print('\nurl = $url\ntoken = $token');
+      log(response.body, name: "Response GET data");
 
       return jsonDecode(response.body);
     } else {
@@ -57,7 +60,7 @@ class UsersApi {
         'Authorization': token,
       });
     }
-    print('url = $url\nbody = $body\ntoken = $token');
+    print('\nurl = $url\nbody = $body\ntoken = $token');
 
     http.Response response = await http.post(
       Uri.parse("$baseUrlUsers/$url"),
@@ -66,7 +69,7 @@ class UsersApi {
     );
 
     if (response.statusCode == 200) {
-      print(response.body);
+      log(response.body, name: "Response POST data");
 
       return jsonDecode(response.body);
     } else {
@@ -95,7 +98,7 @@ class UsersApi {
         'Authorization': token,
       });
     }
-    print('url = $url\n body = $body\n token = $token');
+    print('\nurl = $url\n body = $body\n token = $token');
     http.Response response = await http.put(
       Uri.parse("$baseUrlUsers/$url"),
       body: body,
@@ -103,7 +106,7 @@ class UsersApi {
     );
 
     if (response.statusCode == 200) {
-      print(response.body);
+      log(response.body, name: "Response PUT data");
       return jsonDecode(response.body);
     } else {
       print("Exception: Error Status Code ${response.statusCode}");
