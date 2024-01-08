@@ -12,14 +12,21 @@ class GridViewAnimation extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimationConfiguration.staggeredGrid(
       position: index,
-      columnCount: 2,
-      child: ScaleAnimation(
-        duration: const Duration(milliseconds: 900),
-        scale: 1.5,
+      columnCount: 1,
+      // duration: const Duration(milliseconds: 1500),
+      // delay: const Duration(milliseconds: 500),
+      child: SlideAnimation(
+        verticalOffset: 350,
+        duration: const Duration(milliseconds: 2500),
+        delay: const Duration(milliseconds: 250),
         curve: Curves.fastLinearToSlowEaseIn,
-        child: FadeInAnimation(
-          child: child,
-        ),
+        child: child,
+        //  FlipAnimation(
+        //   flipAxis: FlipAxis.y,
+        //   duration: const Duration(milliseconds: 2000),
+        //   curve: Curves.fastLinearToSlowEaseIn,
+        //   child: child,
+        // ),
       ),
     );
   }
